@@ -166,3 +166,80 @@ $$
  y = 96 = 32 + 64 & = 11000_2 \\\\
  \end{aligned}
 $$
+
+## Реализация
+
+Одномерное дерево Фенвика с бинпоиском.
+```cpp
+vector<long long> BIT;
+
+// Сумма на префиксе [0; r]
+long long sum(int r) {
+    long long res = 0;
+    for (; r > 0; r -= r & -r)
+        res += BIT[r];
+    return res;
+}
+
+// Сумма на отрезке [l; r]
+long long sum(int l, int r) {
+    return sum(r) - sum(l - 1);
+}
+
+// Прибавление в точке: a[k] += v
+void add(int k, long long v) {
+    for (; k < BIT.size(); k += k & -k)
+        BIT[k] += v;
+}
+
+// Найти самую левую позицию с суммой не меньше s
+int lower_bound(int s) {
+    int k = 0;
+    static const int logn = log2(BIT.size());
+    for (int l = logn; l >= 0; l--) {
+        if (k + (1 << l) < BIT.size() && BIT[k + (1 << l)] < s) {
+            k += (1 << l);
+            s -= BIT[k];
+        }
+    }
+    return k;
+}
+```
+
+Трехмерный Фенвик без бинпоиска.
+```cpp
+vector<vector<vector<long long>>> BIT;  // массив xm * ym * zm
+int xm, ym, zm;
+
+// Сумма на префиксе [(0,0,0); (x1,y1,z1)]
+long long sum(int x1, int y1, int z1) {
+    long long res = 0;
+    for (int i = x1; i > 0; i -= i & -i)
+        for (int j = y1; j > 0; j -= j & -j)
+            for (int k = z1; k > 0; k -= k & -k)
+                res += BIT[i][j][k];
+    return res;
+}
+
+// Сумма на кубе [(x1,y1,z1); (x2,y2,z2)]. Здесь просто очень больно расписана формула включений-исключений
+long long sum(int x1, int y1, int z1, int x2, int y2, int z2) {
+    long long x2y2z2 = sum1(x2, y2, z2);
+    long long x1y2z2 = sum1(x1 - 1, y2, z2);
+    long long x2y1z2 = sum1(x2, y1 - 1, z2);
+    long long x2y2z1 = sum1(x2, y2, z1 - 1);
+    long long x2y1z1 = sum1(x2, y1 - 1, z1 - 1);
+    long long x1y2z1 = sum1(x1 - 1, y2, z1 - 1);
+    long long x1y1z2 = sum1(x1 - 1, y1 - 1, z2);
+    long long x1y1z1 = sum1(x1 - 1, y1 - 1, z1 - 1);
+    long long res = x2y2z2 - x1y2z2 - x2y1z2 - x2y2z1 + x2y1z1 + x1y2z1 + x1y1z2 - x1y1z1;
+    return res;
+}
+
+// Прибваление в точке: a[x1][y1][z1] += v
+void add(int x1, int y1, int z1, long long v) {
+    for (int i = x1; i <= xm; i += i & -i)
+        for (int j = y1; j <= ym; j += j & -j)
+            for (int k = z1; k <= zm; k += k & -k)
+                BIT[i][j][k] += v;
+}
+```
