@@ -1,4 +1,6 @@
 img {
 	max-width: 85%;
 	max-height: 512px;
+	margin: auto;
+	display: block;
 }
