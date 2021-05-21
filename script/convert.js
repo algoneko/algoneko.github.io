@@ -14,8 +14,6 @@ converter = new showdown.Converter({
   tasklists: true,
 })
 
-_body = document.getElementById("body");
-
 function convert(name) {
     text = httpGet("/md/" + name + ".txt");
     html = converter.makeHtml(text);
@@ -23,6 +21,7 @@ function convert(name) {
     e = document.createElement('div');
     e.innerHTML = html;
 
+    _body = document.getElementById("body");
     while (e.firstChild) {
         _body.appendChild(e.firstChild);
     }
