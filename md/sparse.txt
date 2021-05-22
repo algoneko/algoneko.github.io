@@ -67,10 +67,10 @@ for (int l = 0; l < logn - 1; l++)
 int sum(int l, int r) { // [l, r)
     int res = 0;
     for (int d = logn - 1; d >= 0; d--) {
-        if (l + (1 << d) < r) {
-            res += t[l][d];
-            l += (1 << d);
-        }
+        if (l + (1 << d) < r) {
+            res += t[l][d];
+            l += (1 << d);
+        }
     }
     return res;
 }
@@ -130,9 +130,9 @@ void build(int l, int r, int level = logn - 1) {
     }
 
     if (r - l > 1) {
-        build(l, mid, level+1);
-        build(mid, r, level+1);
-    }
+        build(l, mid, level+1);
+        build(mid, r, level+1);
+    }
 }
 
 int rmq(int l, int r) { // [l, r)
