@@ -331,3 +331,29 @@ int query(int l, int r) {
 ```
 
 Можно заметить неоптимальность кода `modify`: сделано три прохода по вершинам -- один вниз в `push` и два вверх. От последнего прохода вверх можно избавиться, но выглядеть код будет ужасно:
+
+```cpp
+void modify(int l, int r, int value) {
+  if (value == 0) return;
+  push(l, l + 1);
+  push(r - 1, r);
+  bool cl = false, cr = false;
+  int k = 1;
+  for (l += n, r += n; l < r; l >>= 1, r >>= 1, k <<= 1) {
+    if (cl) calc(l - 1, k);
+    if (cr) calc(r, k);
+    if (l&1) apply(l++, value, k), cl = true;
+    if (r&1) apply(--r, value, k), cr = true;
+  }
+  for (--l; r > 0; l >>= 1, r >>= 1, k <<= 1) {
+    if (cl) calc(l, k);
+    if (cr && (!cl || l != r)) calc(r, k);
+  }
+}
+```
+
+Флаги показывают, были ли изменения слева и справа. Посмотрим на пример:
+
+![](img/segtree_ranges_3.png)
+
+...
