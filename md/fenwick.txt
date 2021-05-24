@@ -1,10 +1,3 @@
-<div style='border: 1px solid #A7A; border-left: 7px solid rgb(204, 153, 204); padding: 6px; padding-left: 8px; padding-bottom: 6px; font-size: 14px; line-height: 1.5em; margin-top: 5px;'>
-<img src='img/Nohate.jpg' style='float: left; margin-right: 8px;'>
-<b>НЯ!</b>
-<br>Эта статья полна любви и обожания.
-<br>Возможно, стоит добавить <a href='http://neerc.ifmo.ru/wiki/index.php?title=%D0%9F%D0%B5%D1%80%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BD%D1%82%D0%BD%D1%8B%D0%B5_%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D1%8B_%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85'>ещё больше</a>?
-</div>
-
 # Дерево Фенвика
 
 Дерево Фенвика или двоичное индексированное дерево (англ. *binary indexed tree*) — структура данных, которая на многих задачах заменяет собой дерево отрезков, но при этом работает в 3-4 раза быстрее, занимает минимально возможное количество памяти (столько же, сколько и массив той же длины), намного быстрее пишется и легче обобщается на большие размерности.
