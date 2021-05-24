@@ -75,8 +75,8 @@ void dfs(int v) {
 
 $$
 d_v = \min \begin{cases}
-h_v, &\\
-d_u, &\text{ребро } (v \to u) \text{ прямое} \\
+h_v, &\\\\
+d_u, &\text{ребро } (v \to u) \text{ прямое} \\\\
 h_u, &\text{ребро } (v \to u) \text{ обратное}
 \end{cases}
 $$
