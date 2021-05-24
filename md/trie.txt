@@ -121,13 +121,13 @@ Vertex *root = new Vertex(-1, 0);
 
 ```cpp
 void add_string(string &s) {
-    Vertex *v = root;
-    for (char _c : s) {
-        int c -= int(_c - 'a');
-        if (!v->to[c])
-            v->to[c] = new Vertex(c, v);
-        v = v->to[c];
-    }
+    Vertex *v = root;
+    for (char _c : s) {
+        int c -= int(_c - 'a');
+        if (!v->to[c])
+            v->to[c] = new Vertex(c, v);
+        v = v->to[c];
+    }
 }
 ```
 
@@ -140,25 +140,25 @@ Vertex* go(Vertex *v, int c);
 
 Vertex* link(Vertex *v) {
     if (!v->link) {
-        // для строк длины меньше двух суффиксная ссылка это корень
+        // для строк длины меньше двух суффиксная ссылка это корень
         if (v == root || v->p == root)
-            v->link = root;
+            v->link = root;
         else // для остальных случаев формула работает
-            v->link = go(link(v->p), v->pch);
+            v->link = go(link(v->p), v->pch);
     }
     return v->link;
 }
 
 Vertex* go(Vertex *v, int c) {
     if (!v->go[c]) {
-        // если переход есть, то автоматный должен вести туда же
+        // если переход есть, то автоматный должен вести туда же
         if (v->to[c])
-            v->go[c] = v->to[c];
+            v->go[c] = v->to[c];
         // если перехода нет из корня, то нужно сделать петлю
         else if (v == root)
-            v->go[c] = root;
+            v->go[c] = root;
         else // для остальных случаев формула работает
-            v->go[c] = go(link(v), c);
+            v->go[c] = go(link(v), c);
     }
     return v->go[c];
 }
@@ -237,6 +237,7 @@ struct trie {
   }
 };
 ```
+<br>
 
 ```cpp
 // Бор для строк.
@@ -311,6 +312,7 @@ struct trie {
   }
 };
 ```
+<br>
 
 ```cpp
 // Ахо-Корасик. Реализация по Википедии на указателях
