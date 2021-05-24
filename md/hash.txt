@@ -289,12 +289,12 @@ $$
 
 $$
 \begin{aligned}
-    e^x & = 1 + x + \frac{x^2}{2!} + \ldots & \text{(ряд Тейлора для экспоненты)} \\
-    & \simeq 1 + x & \text{(аппроксимация для $|x| \ll 1$)} \\
-    e^{-\frac{n}{d}} & \simeq 1 - \frac{n}{d} & \text{(подставим $\frac{n}{d} \ll 1$)} \\
-    f(n, d) & \simeq e^{-\frac{1}{d}} \times e^{-\frac{2}{d}} \times \ldots \times e^{-\frac{n-1}{d}} & \\
-    & = e^{-\frac{n(n-1)}{2d}} & \\
-    & \simeq e^{-\frac{n^2}{2d}} & \\
+    e^x & = 1 + x + \frac{x^2}{2!} + \ldots & \text{(ряд Тейлора для экспоненты)} \\\\
+    & \simeq 1 + x & \text{(аппроксимация для $|x| \ll 1$)} \\\\
+    e^{-\frac{n}{d}} & \simeq 1 - \frac{n}{d} & \text{(подставим $\frac{n}{d} \ll 1$)} \\\\
+    f(n, d) & \simeq e^{-\frac{1}{d}} \times e^{-\frac{2}{d}} \times \ldots \times e^{-\frac{n-1}{d}} & \\\\
+    & = e^{-\frac{n(n-1)}{2d}} & \\\\
+    & \simeq e^{-\frac{n^2}{2d}} & \\\\
 \end{aligned}
 $$
 
