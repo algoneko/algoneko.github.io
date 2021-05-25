@@ -85,7 +85,7 @@
 
 ### Разное
 
-* [ ] [Векторизация](sse.html): risc vs cisc, ассемблер, simd, sse, маски, loop unrolling
+* [x] [Векторизация](sse.html): risc vs cisc, ассемблер, simd, sse, маски, loop unrolling
 * [ ] [Метод отжига](anneal.html): физическая аналогия, эвристики, расстановка ферзей
 * [ ] [Неудаляющий аллокатор](alloc.html)
 * [ ] [Стресс-тестирование](stress.html)
