@@ -1,0 +1,7 @@
+<table style="line-height: 1.5em; font-size: 87.5%; clear: both; width: 80%; background-color: #fefefe; border-color:#255 #255 #255 #255; border-style: solid; border-width: 1px 1px 1px 10px; padding: 4px; margin: 5px auto; vertical-align: middle; text-align: left;">
+<tbody><tr>
+<td width="72px" height="auto"><img alt="Hypnotoad" src="img/64px-Hypnotoad_1.gif" width="64" height="64"></td>
+<td style="vertical-align: middle">
+<b><span style="color:#255;font-weight:bold">ACHTUNG! Опасно для моска!</span></b>
+<br>Министерство здравоохранения предупреждает: вдумчивое чтение нижеследующего текста способно нанести непоправимый ущерб рассудку. Вас предупреждали.
+</td></tr></tbody></table>
