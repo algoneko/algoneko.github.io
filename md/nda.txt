@@ -21,7 +21,7 @@ char memory[max_memory];
 void* operator new(size_t n) {
     char *res = memory + pos_memory;
     pos_memory += n;
-    assert(pos_memory <= max_memory);
+    assert(pos_memory <= max_memory);
     return (void*) res;
 }
 void operator delete(void *){}
