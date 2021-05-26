@@ -13,7 +13,7 @@
 ```latex
 \begin{aligned}
 A(x) &= a_0 + a_1\cdot x + a_2 \cdot x^2  + \dots + a_n \cdot x^n
-\\\\ &= a_0 + a_1\cdot 2 + a_2 \cdot 2^2 + \dots + a_n \cdot 2^n
+\\ &= a_0 + a_1\cdot 2 + a_2 \cdot 2^2 + \dots + a_n \cdot 2^n
 \end{aligned}
 ```
 
@@ -51,7 +51,7 @@ void carry(int *a, int n) {
 ```latex
 T(n) = \begin{cases}
 a T(\frac{n}{b}) + \Theta(n^c), & n > n_0
-\\\\ \Theta(1), & n \leq n_0
+\\ \Theta(1), & n \leq n_0
 \end{cases}
 ```
 
@@ -104,14 +104,14 @@ T(n) = n^c \sum_{k=0}^{\log_b n} (\frac{a}{b^c})^k = \Theta(n^c (\frac{a}{b^c})^
 
 ```latex
 a(x) = a_1 (x) + x^k a_2(x)
-\\\\b(x) = b_1 (x) + x^k b_2(x)
+\\b(x) = b_1 (x) + x^k b_2(x)
 ```
 
 Теперь рекурсивно вычислим многочлены-произведения $p_1$ и $p_2$:
 
 ```latex
 p_1(x) = a_1(x) \cdot b_1(x)
-\\\\
+\\
 p_2(x) = a_2(x) \cdot b_2(x)
 ```
 
