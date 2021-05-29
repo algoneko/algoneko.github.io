@@ -65,7 +65,7 @@ function dfs(x: int, a: int[], b: int[], c: int[], w: int[][], Ch: int[]):
 
 Пусть какой-либо алгоритм на дереве работает за время $\O \left ( \left |Ch \left ( x \right) \right |^k \right )$ для вершины x, тогда время обработки им всего дерева не превышает $\O \left ( n^k \right )$:
 
-**Доказательство.** $\forall x \in \left \{ 1 \dots n \right \}: \left | Ch(x) \right | \leqslant n$, поэтому $\sum_{x=1}^n \limits \left | Ch \left ( x \right ) \right |^k \leqslant \sum_{x=1}^n \limits | Ch \left ( x \right ) | \cdot n^{k-1}=n \cdot n^{k-1}=n^k$.
+**Доказательство.** $\forall x \in \left \\{ 1 \dots n \right \\}: \left | Ch(x) \right | \leqslant n$, поэтому $\sum_{x=1}^n \limits \left | Ch \left ( x \right ) \right |^k \leqslant \sum_{x=1}^n \limits | Ch \left ( x \right ) | \cdot n^{k-1}=n \cdot n^{k-1}=n^k$.
 
 ## ДП по подмноженствам
 
