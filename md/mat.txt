@@ -50,12 +50,12 @@ for x in X:
 
 Тогда верны два неравенства:
 
-$$
+```latex
 \begin{cases}
 w(A \cup y) = w(A) + w(y) \geq w(B) \implies w(A) \geq w(B) - w(y) \\
 w(B \setminus y) = w(B) - w(y) \geq w(A) \implies w(A) \leq w(B) - w(y)
 \end{cases}
-$$
+```
 
 Величина $w(A)$ с двух сторон ограничивает величину $w(B) - w(y)$. Значит, они равны. Cледовательно,
 $w(A \cup y) = w(A) + w(y) = w(B)$.
