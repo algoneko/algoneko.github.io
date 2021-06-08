@@ -40,12 +40,12 @@ const getConfig = () => ({
   displayMode: true,
   throwOnError: false, //fail silently
   errorColor: '#ff0000',
-  delimiters: (config.delimiters || []).concat([
+  delimiters: [
     { left: '$$', right: '$$', display: true },
     { left: '$', right: '$', display: false },
     { left: '~', right: '~', display: false, asciimath: true },
     { left: '@[', right: ']@', display: true, asciimath: true },
-  ]),
+  ],
   trust: true,
   macros: {
     "\\cb": "\\begin{cases}",
