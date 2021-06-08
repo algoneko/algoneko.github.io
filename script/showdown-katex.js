@@ -36,7 +36,7 @@ function escapeRegExp(str) {
 
 // katex config
 const getConfig = () => ({
-  ...window.katex.config,
+  // ...window.katex.config,
   displayMode: true,
   throwOnError: false, //fail silently
   errorColor: '#ff0000',
@@ -115,7 +115,7 @@ const katexLatex = () => {
 
 // register extension
 if (typeof window.showdown !== 'undefined') {
-  window.showdown.extension('katex-latex', katexLatex);
+  window.showdown.extension('katexlatex', katexLatex);
 }
 
 // export default katexLatex;
