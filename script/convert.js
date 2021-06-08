@@ -7,6 +7,7 @@ function httpGet(theUrl) {
 
 converter = new showdown.Converter({
 //  extensions: [ 'showdown-katex' ],
+  extensions: [ 'katex-latex' ],
   literalMidWordUnderscores: true,
   parseImgDimensions: true,
   strikethrough: true,

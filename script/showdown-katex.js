@@ -1,32 +1,27 @@
-//import katex from 'katex';
-//import renderMathInElement from 'katex/dist/contrib/auto-render';
-//import showdown from 'showdown';
-//import asciimathToTex from './asciimath-to-tex';
-/*
-if (process.env.TARGET === 'cjs') {
-  const { JSDOM } = require('jsdom');
-  const jsdom = new JSDOM();
-  global.DOMParser = jsdom.window.DOMParser;
-  global.document = jsdom.window.document;
-}*/
+/**!
+* @file katex-latex: markdown + ( latex and/or asciimath )
+* @author [obedm503](https://github.com/obedm503/)
+* @git [git repo](https://github.com/obedm503/katex-latex.git)
+* @examples https://obedm503.github.io/katex-latex/
+* @license MIT
+*/
+// import asciimathToTex from './asciimath-to-tex';
 
 /**
- * @param {object} opts
- * @param {NodeListOf<Element>} opts.elements
- * @param opts.config
- * @param {boolean} opts.isAsciimath
+ * @param {NodeListOf<Element>} elements
+ * @param config
+ * @param {boolean} isAsciimath
  */
-function renderBlockElements({ elements, config, isAsciimath }) {
-  if (!elements.length) {
-    return;
+function renderElements(elements, config, isAsciimath) {
+  if (elements.length) {
+    for (let i = 0, len = elements.length; i < len; i++) {
+      const element = elements[i];
+      const input = element.innerHTML;
+      const latex = isAsciimath ? asciimathToTex(input) : input;
+      const html = window.katex.renderToString(latex, config);
+      element.parentNode.outerHTML = `<span title="${input}">${html}</span>`;
+    }
   }
-
-  elements.forEach(element => {
-    const input = element.textContent;
-    const latex = isAsciimath ? asciimathToTex(input) : input;
-    const html = katex.renderToString(latex, config);
-    element.parentNode.outerHTML = `<span title="${input.trim()}">${html}</span>`;
-  });
 }
 
 /**
@@ -35,15 +30,16 @@ function renderBlockElements({ elements, config, isAsciimath }) {
  * @returns {string} regexp escaped string
  */
 function escapeRegExp(str) {
-  return str.replace(/[-[\]/{}()*+?.\\$^|]/g, '\\$&');
+  // eslint-disable-next-line no-useless-escape
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
 // katex config
-const getConfig = (config = {}) => ({
+const getConfig = () => ({
+  ...window.katex.config,
   displayMode: true,
-  throwOnError: false, // fail silently
+  throwOnError: false, //fail silently
   errorColor: '#ff0000',
-  ...config,
   delimiters: (config.delimiters || []).concat([
     { left: '$$', right: '$$', display: true },
     { left: '$', right: '$', display: false },
@@ -70,68 +66,56 @@ const getConfig = (config = {}) => ({
   }
 });
 
-const showdownKatex = userConfig => () => {
-  const parser = new DOMParser();
-  const config = getConfig(userConfig);
-  const asciimathDelimiters = config.delimiters
-    .filter(item => item.asciimath)
-    .map(({ left, right }) => {
-      const test = new RegExp(
-        `${escapeRegExp(left)}(.*?)${escapeRegExp(right)}`,
-        'g',
-      );
-      const replacer = (match, asciimath) => {
-        return `${left}${asciimathToTex(asciimath)}${right}`;
-      };
-      return { test, replacer };
-    });
+// is katex.config is undefined, it is an empty object
+window.katex.config = window.katex.config || {};
 
+const katexLatex = () => {
   return [
     {
       type: 'output',
-      filter(html = '') {
-        // parse html
-        const wrapper = parser.parseFromString(html, 'text/html').body;
-
-        if (asciimathDelimiters.length) {
-          // convert inline asciimath to inline latex
-          // ignore anything in code and pre elements
-          wrapper.querySelectorAll(':not(code):not(pre)').forEach(el => {
-            /** @type Text[] */
-            const textNodes = [...el.childNodes].filter(
-              // skip "empty" text nodes
-              node => node.nodeName === '#text' && node.nodeValue.trim(),
-            );
-
-            textNodes.forEach(node => {
-              const newText = asciimathDelimiters.reduce(
-                (acc, { test, replacer }) => acc.replace(test, replacer),
-                node.nodeValue,
-              );
-              node.nodeValue = newText;
-            });
-          });
-        }
-
-        // find the math in code blocks
-        const latex = wrapper.querySelectorAll('code.latex.language-latex');
-        const asciimath = wrapper.querySelectorAll(
-          'code.asciimath.language-asciimath',
-        );
-
-        renderBlockElements({ elements: latex, config });
-        renderBlockElements({ elements: asciimath, config, isAsciimath: true });
-
-        renderMathInElement(wrapper, config);
-
-        // return html without the wrapper
-        return wrapper.innerHTML;
+      filter: (text = '') => {
+        const config = getConfig();
+        const delimiters = config.delimiters.filter(item => item.asciimath);
+        if (!delimiters.length) { return text; }
+        return delimiters.reduce((acc, delimiter) => {
+          const test = new RegExp(
+            `${escapeRegExp(delimiter.left)}(.*?)${escapeRegExp(delimiter.right)}`,
+            'g',
+          );
+          return acc.replace(test, (match, capture) =>
+            `${delimiter.left}${asciimathToTex(capture)}${delimiter.right}`
+          );
+        }, text);
       },
     },
+    {
+      type: 'output',
+      filter: html => {
+        const config = getConfig();
+        //parse html inside a <div>
+        const div = document.createElement('div');
+        div.innerHTML = html;
+
+        //find our "code"
+        const latex = div.querySelectorAll('code.latex.language-latex');
+        const asciimath = div.querySelectorAll('code.asciimath.language-asciimath');
+
+        renderElements(latex, config);
+        renderElements(asciimath, config, true);
+        if (typeof window.renderMathInElement === 'function') {
+          window.renderMathInElement(div, config);
+        }
+
+        //return html without the initial <div>
+        return div.innerHTML;
+      }
+    },
   ];
-};
+}
 
-// register extension with default config
-showdown.extension('showdown-katex', showdownKatex());
+// register extension
+if (typeof window.showdown !== 'undefined') {
+  window.showdown.extension('katex-latex', katexLatex);
+}
 
-//export default showdownKatex;
+// export default katexLatex;
