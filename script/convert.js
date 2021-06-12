@@ -16,7 +16,7 @@ converter = new showdown.Converter({
 })
 
 function convert(name) {
-    text = httpGet("/md/" + name + ".txt");
+    text = httpGet("/md/" + name + ".md");
     html = converter.makeHtml(text);
 
     e = document.createElement('div');
