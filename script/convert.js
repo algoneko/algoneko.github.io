@@ -16,6 +16,8 @@ converter = new showdown.Converter({
 })
 
 function convert(name) {
+    if (name == "ftr") return;
+    
     text = httpGet("/md/" + name + ".md");
     html = converter.makeHtml(text);
 
