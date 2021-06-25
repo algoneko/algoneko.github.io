@@ -3,7 +3,7 @@ function httpGet(theUrl) {
     xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
     xmlHttp.send( null );
     if (xmlHttp.status >= 300 || xmlHttp.status < 200) {
-        str = "_An error occurred while opening [this file](" + theUrl + "). "
+        str = "> An error occurred while opening [this file](" + theUrl + "). "
             + "Code: " + ("" + xmlHttp.status) + "-" + xmlHttp.statusText + "\n";
         return str;
     }
