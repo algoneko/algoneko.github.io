@@ -31,7 +31,7 @@ function convert(name) {
 
     if (name === "ftr") name = "foot";  // That ugly hack, again.
     
-    text = httpGet("/md/" + name + (is_special?".txt":".md");
+    text = httpGet("/md/" + name + (is_special?".txt":".md"));
     html = converter.makeHtml(text);
 
     e = document.createElement('div');
