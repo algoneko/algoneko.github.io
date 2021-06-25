@@ -2,6 +2,11 @@ function httpGet(theUrl) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
     xmlHttp.send( null );
+    if (xmlHttp.status >= 300 || xmlHttp.status < 200) {
+        str = "_An error occurred while opening [this file](" + theUrl + "). "
+            + "Code: " + ("" + xmlHttp.status) + "-" + xmlHttp.statusText + "\n";
+        return str;
+    }
     return xmlHttp.responseText;
 }
 
@@ -15,10 +20,18 @@ converter = new showdown.Converter({
   tasklists: true,
 })
 
+function isInArray(value, array) {
+  return array.indexOf(value) > -1;
+}
+
 function convert(name) {
-    if (name == "ftr") return;
+    is_special = isInArray(name, [
+        "brain", "facepalm", "ftr", "hate", "longago", "nya", "vp"
+    ]);
+
+    if (name === "ftr") name = "foot";  // That ugly hack, again.
     
-    text = httpGet("/md/" + name + ".md");
+    text = httpGet("/md/" + name + (is_special?".txt":".md");
     html = converter.makeHtml(text);
 
     e = document.createElement('div');
