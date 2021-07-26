@@ -7,7 +7,15 @@ img {
 }
 
 pre {
-    border: 1px solid black;
+    border: 1px solid;
     display: inline-block;
     padding: 5px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid;
 }
