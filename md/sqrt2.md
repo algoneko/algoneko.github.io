@@ -228,16 +228,16 @@ sqrt-дерево поддерживает операции обновления
 
 ### Обновление отрезков
 
-sqrt-дерево умеет делать массовые операции, к примеру, присваивание на отрезке. Запрос $\text{massUpdate}(x, l, r)$ значит $a_i = x \forall i \in [l; r]$.
+sqrt-дерево умеет делать массовые операции, к примеру, присваивание на отрезке. Запрос $\text{massUpdate}(x, l, r)$ значит $a_i = x\ \forall i \in [l; r]$.
 
 Есть два подхода к этой задаче:
 
 | |Запрос|Обновление|
-|==:|:==:|:==:|
-|1|$\O(1)$|$\O(\sqrt{n}\cdot\log\log n)$|
-|2|$\O(\log\log n)$|$\O(\sqrt{n})$|
+|--|:--:|:--:|
+|1 подход|$\O(1)$|$\O(\sqrt{n}\cdot\log\log n)$|
+|2 подход|$\O(\log\log n)$|$\O(\sqrt{n})$|
 
-There are two approaches to do this: one of them does $\text{massUpdate}$ in $O(\sqrt{n}\cdot \log \log n)$, keeping $O(1)$ per query. The second one does $\text{massUpdate}$ in $O(\sqrt{n})$, but the query complexity becomes $O(\log \log n)$.
+...
 
 We will do lazy propagation in the same way as it is done in segment trees: we mark some nodes as _lazy_, meaning that we'll push them when it's necessary. But one thing is different from segment trees: pushing a node is expensive, so it cannot be done in queries. On the layer $0$, pushing a node takes $O(\sqrt{n})$ time. So, we don't push nodes inside queries, we only look if the current node or its parent are _lazy_, and just take it into account while performing queries.
 
