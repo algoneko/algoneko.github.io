@@ -1,5 +1,7 @@
 # sqrt-дерево
 
+http://physio-a.univ-tours.fr/tcplugins/msflxgrd.zip
+
 Это -- перевод [статьи про sqrt-дерево](https://cp-algorithms.com/data_structures/sqrt-tree.html) из английского e-maxx.
 
 Перед прочтением рекомендуется ознакомиться с базовыми принципами [корневой декомпозиции](sqrt.html).
@@ -66,70 +68,167 @@ sqrt-дерево может отвечать на такие запросы з�
 
 ### Оптимизации ответа на запрос
 
-Одна из наиболее очевидных оптимизаций -- двоичным поиском найти вершину дерева, котррая будет нужна. Используя двоичный поиск можно добиться асимптотики $\O(log\log\log n)$ на запрос. Можно ли _еще_ быстрее?
+Одна из наиболее очевидных оптимизаций -- двоичным поиском найти вершину дерева, которая будет нужна. Используя двоичный поиск можно добиться асимптотики $\O(log\log\log n)$ на запрос. Можно ли _еще_ быстрее?
 
 Да, можно. Давайте сделаем следующие предположения:
 
 1. Размер каждого блока -- степень двойки.
 2. На каждом уровне все блоки имеют одинаковый размер.
 
-To reach this, we can add some zero elements to our array so that its size becomes a power of two.
+Чтобы этого достичь, добавим нейтральных элементов в конец массива, чтобы его размер стал степенью 2.
 
-When we use this, some block sizes may become twice larger to be a power of two, but it still be $O(\sqrt{k})$ in size and we keep linear complexity for building the arrays in a segment.
+При таком подходе длины отрезков, соответствующих некоторым блокам, могут увеличиться почти в два раза чтобы стать степенью 2, но эта длина все равно остается $\O(\sqrt{k})$ и построение массивов на отрезке остается линейным.
 
-Now, we can easily check if the query fits entirely into a block with size $2^k$. Let's write the ranges of the query, $l$ and $r$ (we use 0-indexation) in binary form. For instance, let's assume $k=4, l=39, r=46$. The binary representation of $l$ and $r$ is:
+Теперь легко проверить, что запрос целиком лежит в блоке размера $2^k$. Запишем отрезок запроса в 0-индексации в двоичном виде. Пусть $k=4$, $l=39$, $r=46$, тогда
 
 $l = 39_{10} = 100111_2$
 
 $r = 46_{10} = 101110_2$
 
-Remember that one layer contains segments of the equal size, and the block on one layer have also equal size (in our case, their size is $2^k = 2^4 = 16$. The blocks cover the array entirely, so the first block covers elements $(0 - 15)$ ($(000000_2 - 001111_2)$ in binary), the second one covers elements $(16 - 31)$ ($(010000_2 - 011111_2)$ in binary) and so on. We see that the indices of the positions covered by one block may differ only in $k$ (in our case, $4$) last bits. In our case $l$ and $r$ have equal bits except four lowest, so they lie in one block.
+Remember that one layer contains segments of the equal size, and the block on one layer have also equal size (in our case, their size is $2^k = 2^4 = 16$. Эти блоки оплностью покрывают массив, так что первый блок покрывает элементы $(0 - 15)$ ($(000000_2 - 001111_2)$ in binary), второй -- $(16 - 31)$ ($(010000_2 - 011111_2)$ in binary) и так далее. Видно, что инрдексы элементов в одном блоке отличаются только в $k$ (в нашем случае 4) младших битах. В нашем случае у $l$ и $r$ биты сопадают, за исключением 4 младших, поэтому они лежат в одном блоке.
 
-So, we need to check if nothing more that $k$ smallest bits differ (or $l\ \text{xor}\ r$ doesn't exceed $2^k-1$).
+Итак, необходимо проверить, что отличаются не более $k$ младших битов, то есть $l \oplus r < 2^k$.
 
-Using this observation, we can find a layer that is suitable to answer the query quickly. How to do this:
+С этими наблюдениями легко понять, какой уровень необходим для быстрого ответа на запрос. Вот как это делается:
 
-1. For each $i$ that doesn't exceed the array size, we find the highest bit that is equal to $1$. To do this quickly, we use DP and a precalculated array.
+1. Для каждого $i$ не превышающего размер массива найдем старший единичный бит. Чтобы это делать быстро, воспользуемся динамикой и предпросчитанным массивом.
 
-2. Now, for each $q(l, r)$ we find the highest bit of $l\ \text{xor}\ r$ and, using this information, it's easy to choose the layer on which we can process the query easily. We can also use a precalculated array here.
+2. Для каждого $q(l, r)$ найдем старший бит $l \oplus r$ и, используя эту информацию, легко определить уровень запроса. Тут тоже можно воспользоваться предпросчетом.
 
-For more details, see the code below.
+Больше подробностей в исходном коде ниже.
 
-So, using this, we can answer the queries in $O(1)$ each. Hooray! :)
+Итак, мы добились ответа на запрос за $\O(1)$. Ура! `^u^`
 
-## Updating elements
+```cpp
+int op(int a, int b);
 
-We can also update elements in Sqrt Tree. Both single element updates and updates on a segment are supported.
+inline int log2Up(int n) {
+  int res = 0;
+  while ((1 << res) < n) {
+    res++;
+  }
+  return res;
+}
 
-### Updating a single element
+class SqrtTree {
+private:
+  int n, lg;
+  vector<int> v;
+  vector<int> clz;
+  vector<int> layers;
+  vector<int> onLayer;
+  vector< vector<int> > pref;
+  vector< vector<int> > suf;
+  vector< vector<int> > between;
+  
+  void build(int layer, int lBound, int rBound) {
+    if (layer >= (int)layers.size()) {
+      return;
+    }
+    int bSzLog = (layers[layer]+1) >> 1;
+    int bCntLog = layers[layer] >> 1;
+    int bSz = 1 << bSzLog;
+    int bCnt = 0;
+    for (int l = lBound; l < rBound; l += bSz) {
+      bCnt++;
+      int r = min(l + bSz, rBound);
+      pref[layer][l] = v[l];
+      for (int i = l+1; i < r; i++) {
+        pref[layer][i] = op(pref[layer][i-1], v[i]);
+      }
+      suf[layer][r-1] = v[r-1];
+      for (int i = r-2; i >= l; i--) {
+        suf[layer][i] = op(v[i], suf[layer][i+1]);
+      }
+      build(layer+1, l, r);
+    }
+    for (int i = 0; i < bCnt; i++) {
+      int ans = 0;
+      for (int j = i; j < bCnt; j++) {
+        int add = suf[layer][lBound + (j << bSzLog)];
+        ans = (i == j) ? add : op(ans, add);
+        between[layer][lBound + (i << bCntLog) + j] = ans;
+      }
+    }
+  }
+public:
+  inline int query(int l, int r) {
+    if (l == r) {
+      return v[l];
+    }
+    if (l + 1 == r) {
+      return op(v[l], v[r]);
+    }
+    int layer = onLayer[clz[l ^ r]];
+    int bSzLog = (layers[layer]+1) >> 1;
+    int bCntLog = layers[layer] >> 1;
+    int lBound = (l >> layers[layer]) << layers[layer];
+    int lBlock = ((l - lBound) >> bSzLog) + 1;
+    int rBlock = ((r - lBound) >> bSzLog) - 1;
+    int ans = suf[layer][l];
+    if (lBlock <= rBlock) {
+      ans = op(ans, between[layer][lBound + (lBlock << bCntLog) + rBlock]);
+    }
+    ans = op(ans, pref[layer][r]);
+    return ans;
+  }
+  
+  SqrtTree(const vector<int>& v)
+    : n((int)v.size()), lg(log2Up(n)), v(v), clz(1 << lg), onLayer(lg+1) {
+    clz[0] = 0;
+    for (int i = 1; i < (int)clz.size(); i++) {
+      clz[i] = clz[i >> 1] + 1;
+    }
+    int tlg = lg;
+    while (tlg > 1) {
+      onLayer[tlg] = (int)layers.size();
+      layers.push_back(tlg);
+      tlg = (tlg+1) >> 1;
+    }
+    for (int i = lg-1; i >= 0; i--) {
+      onLayer[i] = max(onLayer[i], onLayer[i+1]);
+    }
+    pref.assign(layers.size(), vector<int>(n));
+    suf.assign(layers.size(), vector<int>(n));
+    between.assign(layers.size(), vector<int>(1 << lg));
+    build(0, 0, n);
+  }
+};
+```
 
-Consider a query $\text{update}(x, val)$ that does the assignment $a_x = val$. We need to perform this query fast enough.
+## Обновление элементов
 
-#### Naive approach
+sqrt-дерево поддерживает операции обновления -- отдельного элемента и на подотрезке.
 
-First, let's take a look of what is changed in the tree when a single element changes. Consider a tree node with length $l$ and its arrays: $\text{prefixOp}$, $\text{suffixOp}$ and $\text{between}$. It is easy to see that only $O(\sqrt{l})$ elements from $\text{prefixOp}$ and $\text{suffixOp}$ change (only inside the block with the changed element). $O(l)$ elements are changed in $\text{between}$. Therefore, $O(l)$ elements in the tree node are updated.
+### Обновление одного элемента
 
-We remember that any element $x$ is present in exactly one tree node at each layer. Root node (layer $0$) has length $O(n)$, nodes on layer $1$ have length $O(\sqrt{n})$, nodes on layer $2$ have length $O(\sqrt{\sqrt{n}})$, etc. So the time complexity per update is $O(n + \sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(n)$.
+Рассмотрим запрос обновления $u(x, val)$, который выполняет присваивание $a_x = val$. Необходимо выполнять этот запрос достаточно быстро.
 
-But it's too slow. Can it be done faster?
+#### Наивный подход
 
-#### An sqrt-tree inside the sqrt-tree
+Посмотрим на то, что меняется в дереве при изменении одного элемента. Рассмотрим вершину дерева с длиной $l$ и ее массивы: $\text{prefixOp}$, $\text{suffixOp}$ и $\text{between}$. Легко заметить, что только $\O(\sqrt{l})$ элементов $\text{prefixOp}$ и $\text{suffixOp}$ меняются -- элементы внутри измененного блока. $\O(l)$ элементов изменятся в массиве $\text{between}$. Всего в вершине обновлено $\O(l)$ элементов.
 
-Note that the bottleneck of updating is rebuilding $\text{between}$ of the root node. To optimize the tree, let's get rid of this array! Instead of $\text{between}$ array, we store another sqrt-tree for the root node. Let's call it $\text{index}$. It plays the same role as $\text{between}$&mdash; answers the queries on segments of blocks. Note that the rest of the tree nodes don't have $\text{index}$, they keep their $\text{between}$ arrays.
+Каждый элемент встречается на каждом слое, и всего один раз на слой. Длина корня (уровень 0) -- $\O(n)$, у вершин на уровне 1 длина $\O(\sqrt{n})$, на уровне 2 -- $\O(\sqrt{\sqrt{n}})$, и так далее. Таким образом сложность запроса обновления $\O(n + \sqrt{n} + \sqrt{\sqrt{n}} + \dots) = \O(n)$.
 
-A sqrt-tree is _indexed_, if its root node has $\text{index}$. A sqrt-tree with $\text{between}$ array in its root node is _unindexed_. Note that $\text{index}$ **is _unindexed_ itself**.
+Слишком медленно. Можно быстрее?
 
-So, we have the following algorithm for updating an _indexed_ tree:
+#### sqrt-дерево в sqrt-дереве
 
-* Update $\text{prefixOp}$ and $\text{suffixOp}$ in $O(\sqrt{n})$.
+Заметьте, узкое место в обновлении -- перестроение $\text{between}$ в корне дерева. Чтобы соптимизировать дерево, избавися от этого массива! Вместо массива $\text{between}$ сделаем другое sqrt-дерево в корневой вершине. Назовем его $\text{index}$. Оно будет выполнять ту же роль, что и массив $\text{between}$ -- ответ на запрос на отрезкахх блоков. $\text{index}$ используется только в корневой вершине, остальные вершины сохраняют свои массивы $\text{between}$.
 
-* Update $\text{index}$. It has length $O(\sqrt{n})$ and we need to update only one item in it (that represents the changed block). So, the time complexity for this step is $O(\sqrt{n})$. We can use the algorithm described in the beginning of this section (the "slow" one) to do it.
+Назовем sqrt-дерево _индексированным_, если у его корня есть массив $\text{index}$. sqrt-дерево с массивом $\text{between}$ в корне -- _неиндексированным_. Заметьте, что $\text{index}$ **является _неиндексированным_**.
 
-* Go into the child node that represents the changed block and update it in $O(\sqrt{n})$ with the "slow" algorithm.
+Итак, алгоритм обновления для _индексированного_ дерева:
 
-Note that the query complexity is still $O(1)$: we need to use $\text{index}$ in query no more than once, and this will take $O(1)$ time.
+1. Обновить $\text{prefixOp}$ и $\text{suffixOp}$ за $\O(\sqrt{n})$.
 
-So, total time complexity for updating a single element is $O(\sqrt{n})$. Hooray! :)
+2. Обновить $\text{index}$. Его длина -- $\O(\sqrt{n})$, необходимо обновить только один элемент (тот, который соответствует измененному блоку). Асимптотика этого шага -- $\O(\sqrt{n})$. Чтобы это сделать, можно использовать "медленный" алгоритм, приведенный в начале раздела.
+
+3. Перейти в дочернюю вершину, соответствующую измененному блоку, и обновить ее "медленным" алгоритмом за $\O(\sqrt{n})$.
+
+Асимптотика запроса так и осталась $\O(1)$: необходимо использовать $\text{index}$ не более одного раза на запрос, а обращение к нему работает за $\O(1)$.
+
+Таким образом, асимптотика обновления одного элемента $\O(\sqrt{n})$. Ура! `^u^`
 
 ### Updating a segment
 
@@ -187,155 +286,155 @@ The following implementation of Sqrt Tree can perform the following operations: 
 SqrtTreeItem op(const SqrtTreeItem &a, const SqrtTreeItem &b);
 
 inline int log2Up(int n) {
-	int res = 0;
-	while ((1 << res) < n) {
-		res++;
-	}
-	return res;
+  int res = 0;
+  while ((1 << res) < n) {
+    res++;
+  }
+  return res;
 }
 
 class SqrtTree {
 private:
-	int n, lg, indexSz;
-	vector<SqrtTreeItem> v;
-	vector<int> clz, layers, onLayer;
-	vector< vector<SqrtTreeItem> > pref, suf, between;
-	
-	inline void buildBlock(int layer, int l, int r) {
-		pref[layer][l] = v[l];
-		for (int i = l+1; i < r; i++) {
-			pref[layer][i] = op(pref[layer][i-1], v[i]);
-		}
-		suf[layer][r-1] = v[r-1];
-		for (int i = r-2; i >= l; i--) {
-			suf[layer][i] = op(v[i], suf[layer][i+1]);
-		}
-	}
-	
-	inline void buildBetween(int layer, int lBound, int rBound, int betweenOffs) {
-		int bSzLog = (layers[layer]+1) >> 1;
-		int bCntLog = layers[layer] >> 1;
-		int bSz = 1 << bSzLog;
-		int bCnt = (rBound - lBound + bSz - 1) >> bSzLog;
-		for (int i = 0; i < bCnt; i++) {
-			SqrtTreeItem ans;
-			for (int j = i; j < bCnt; j++) {
-				SqrtTreeItem add = suf[layer][lBound + (j << bSzLog)];
-				ans = (i == j) ? add : op(ans, add);
-				between[layer-1][betweenOffs + lBound + (i << bCntLog) + j] = ans;
-			}
-		}
-	}
-	
-	inline void buildBetweenZero() {
-		int bSzLog = (lg+1) >> 1;
-		for (int i = 0; i < indexSz; i++) {
-			v[n+i] = suf[0][i << bSzLog];
-		}
-		build(1, n, n + indexSz, (1 << lg) - n);
-	}
-	
-	inline void updateBetweenZero(int bid) {
-		int bSzLog = (lg+1) >> 1;
-		v[n+bid] = suf[0][bid << bSzLog];
-		update(1, n, n + indexSz, (1 << lg) - n, n+bid);
-	}
-	
-	void build(int layer, int lBound, int rBound, int betweenOffs) {
-		if (layer >= (int)layers.size()) {
-			return;
-		}
-		int bSz = 1 << ((layers[layer]+1) >> 1);
-		for (int l = lBound; l < rBound; l += bSz) {
-			int r = min(l + bSz, rBound);
-			buildBlock(layer, l, r);
-			build(layer+1, l, r, betweenOffs);
-		}
-		if (layer == 0) {
-			buildBetweenZero();
-		} else {
-			buildBetween(layer, lBound, rBound, betweenOffs);
-		}
-	}
-	
-	void update(int layer, int lBound, int rBound, int betweenOffs, int x) {
-		if (layer >= (int)layers.size()) {
-			return;
-		}
-		int bSzLog = (layers[layer]+1) >> 1;
-		int bSz = 1 << bSzLog;
-		int blockIdx = (x - lBound) >> bSzLog;
-		int l = lBound + (blockIdx << bSzLog);
-		int r = min(l + bSz, rBound);
-		buildBlock(layer, l, r);
-		if (layer == 0) {
-			updateBetweenZero(blockIdx);
-		} else {
-			buildBetween(layer, lBound, rBound, betweenOffs);
-		}
-		update(layer+1, l, r, betweenOffs, x);
-	}
-	
-	inline SqrtTreeItem query(int l, int r, int betweenOffs, int base) {
-		if (l == r) {
-			return v[l];
-		}
-		if (l + 1 == r) {
-			return op(v[l], v[r]);
-		}
-		int layer = onLayer[clz[(l - base) ^ (r - base)]];
-		int bSzLog = (layers[layer]+1) >> 1;
-		int bCntLog = layers[layer] >> 1;
-		int lBound = (((l - base) >> layers[layer]) << layers[layer]) + base;
-		int lBlock = ((l - lBound) >> bSzLog) + 1;
-		int rBlock = ((r - lBound) >> bSzLog) - 1;
-		SqrtTreeItem ans = suf[layer][l];
-		if (lBlock <= rBlock) {
-			SqrtTreeItem add = (layer == 0) ? (
-				query(n + lBlock, n + rBlock, (1 << lg) - n, n)
-			) : (
-				between[layer-1][betweenOffs + lBound + (lBlock << bCntLog) + rBlock]
-			);
-			ans = op(ans, add);
-		}
-		ans = op(ans, pref[layer][r]);
-		return ans;
-	}
+  int n, lg, indexSz;
+  vector<SqrtTreeItem> v;
+  vector<int> clz, layers, onLayer;
+  vector< vector<SqrtTreeItem> > pref, suf, between;
+  
+  inline void buildBlock(int layer, int l, int r) {
+    pref[layer][l] = v[l];
+    for (int i = l+1; i < r; i++) {
+      pref[layer][i] = op(pref[layer][i-1], v[i]);
+    }
+    suf[layer][r-1] = v[r-1];
+    for (int i = r-2; i >= l; i--) {
+      suf[layer][i] = op(v[i], suf[layer][i+1]);
+    }
+  }
+  
+  inline void buildBetween(int layer, int lBound, int rBound, int betweenOffs) {
+    int bSzLog = (layers[layer]+1) >> 1;
+    int bCntLog = layers[layer] >> 1;
+    int bSz = 1 << bSzLog;
+    int bCnt = (rBound - lBound + bSz - 1) >> bSzLog;
+    for (int i = 0; i < bCnt; i++) {
+      SqrtTreeItem ans;
+      for (int j = i; j < bCnt; j++) {
+        SqrtTreeItem add = suf[layer][lBound + (j << bSzLog)];
+        ans = (i == j) ? add : op(ans, add);
+        between[layer-1][betweenOffs + lBound + (i << bCntLog) + j] = ans;
+      }
+    }
+  }
+  
+  inline void buildBetweenZero() {
+    int bSzLog = (lg+1) >> 1;
+    for (int i = 0; i < indexSz; i++) {
+      v[n+i] = suf[0][i << bSzLog];
+    }
+    build(1, n, n + indexSz, (1 << lg) - n);
+  }
+  
+  inline void updateBetweenZero(int bid) {
+    int bSzLog = (lg+1) >> 1;
+    v[n+bid] = suf[0][bid << bSzLog];
+    update(1, n, n + indexSz, (1 << lg) - n, n+bid);
+  }
+  
+  void build(int layer, int lBound, int rBound, int betweenOffs) {
+    if (layer >= (int)layers.size()) {
+      return;
+    }
+    int bSz = 1 << ((layers[layer]+1) >> 1);
+    for (int l = lBound; l < rBound; l += bSz) {
+      int r = min(l + bSz, rBound);
+      buildBlock(layer, l, r);
+      build(layer+1, l, r, betweenOffs);
+    }
+    if (layer == 0) {
+      buildBetweenZero();
+    } else {
+      buildBetween(layer, lBound, rBound, betweenOffs);
+    }
+  }
+  
+  void update(int layer, int lBound, int rBound, int betweenOffs, int x) {
+    if (layer >= (int)layers.size()) {
+      return;
+    }
+    int bSzLog = (layers[layer]+1) >> 1;
+    int bSz = 1 << bSzLog;
+    int blockIdx = (x - lBound) >> bSzLog;
+    int l = lBound + (blockIdx << bSzLog);
+    int r = min(l + bSz, rBound);
+    buildBlock(layer, l, r);
+    if (layer == 0) {
+      updateBetweenZero(blockIdx);
+    } else {
+      buildBetween(layer, lBound, rBound, betweenOffs);
+    }
+    update(layer+1, l, r, betweenOffs, x);
+  }
+  
+  inline SqrtTreeItem query(int l, int r, int betweenOffs, int base) {
+    if (l == r) {
+      return v[l];
+    }
+    if (l + 1 == r) {
+      return op(v[l], v[r]);
+    }
+    int layer = onLayer[clz[(l - base) ^ (r - base)]];
+    int bSzLog = (layers[layer]+1) >> 1;
+    int bCntLog = layers[layer] >> 1;
+    int lBound = (((l - base) >> layers[layer]) << layers[layer]) + base;
+    int lBlock = ((l - lBound) >> bSzLog) + 1;
+    int rBlock = ((r - lBound) >> bSzLog) - 1;
+    SqrtTreeItem ans = suf[layer][l];
+    if (lBlock <= rBlock) {
+      SqrtTreeItem add = (layer == 0) ? (
+        query(n + lBlock, n + rBlock, (1 << lg) - n, n)
+      ) : (
+        between[layer-1][betweenOffs + lBound + (lBlock << bCntLog) + rBlock]
+      );
+      ans = op(ans, add);
+    }
+    ans = op(ans, pref[layer][r]);
+    return ans;
+  }
 public:
-	inline SqrtTreeItem query(int l, int r) {
-		return query(l, r, 0, 0);
-	}
-	
-	inline void update(int x, const SqrtTreeItem &item) {
-		v[x] = item;
-		update(0, 0, n, 0, x);
-	}
-	
-	SqrtTree(const vector<SqrtTreeItem>& a)
-		: n((int)a.size()), lg(log2Up(n)), v(a), clz(1 << lg), onLayer(lg+1) {
-		clz[0] = 0;
-		for (int i = 1; i < (int)clz.size(); i++) {
-			clz[i] = clz[i >> 1] + 1;
-		}
-		int tlg = lg;
-		while (tlg > 1) {
-			onLayer[tlg] = (int)layers.size();
-			layers.push_back(tlg);
-			tlg = (tlg+1) >> 1;
-		}
-		for (int i = lg-1; i >= 0; i--) {
-			onLayer[i] = max(onLayer[i], onLayer[i+1]);
-		}
-		int betweenLayers = max(0, (int)layers.size() - 1);
-		int bSzLog = (lg+1) >> 1;
-		int bSz = 1 << bSzLog;
-		indexSz = (n + bSz - 1) >> bSzLog;
-		v.resize(n + indexSz);
-		pref.assign(layers.size(), vector<SqrtTreeItem>(n + indexSz));
-		suf.assign(layers.size(), vector<SqrtTreeItem>(n + indexSz));
-		between.assign(betweenLayers, vector<SqrtTreeItem>((1 << lg) + bSz));
-		build(0, 0, n, 0);
-	}
+  inline SqrtTreeItem query(int l, int r) {
+    return query(l, r, 0, 0);
+  }
+  
+  inline void update(int x, const SqrtTreeItem &item) {
+    v[x] = item;
+    update(0, 0, n, 0, x);
+  }
+  
+  SqrtTree(const vector<SqrtTreeItem>& a)
+    : n((int)a.size()), lg(log2Up(n)), v(a), clz(1 << lg), onLayer(lg+1) {
+    clz[0] = 0;
+    for (int i = 1; i < (int)clz.size(); i++) {
+      clz[i] = clz[i >> 1] + 1;
+    }
+    int tlg = lg;
+    while (tlg > 1) {
+      onLayer[tlg] = (int)layers.size();
+      layers.push_back(tlg);
+      tlg = (tlg+1) >> 1;
+    }
+    for (int i = lg-1; i >= 0; i--) {
+      onLayer[i] = max(onLayer[i], onLayer[i+1]);
+    }
+    int betweenLayers = max(0, (int)layers.size() - 1);
+    int bSzLog = (lg+1) >> 1;
+    int bSz = 1 << bSzLog;
+    indexSz = (n + bSz - 1) >> bSzLog;
+    v.resize(n + indexSz);
+    pref.assign(layers.size(), vector<SqrtTreeItem>(n + indexSz));
+    suf.assign(layers.size(), vector<SqrtTreeItem>(n + indexSz));
+    between.assign(betweenLayers, vector<SqrtTreeItem>((1 << lg) + bSz));
+    build(0, 0, n, 0);
+  }
 };
 
 ~~~~~
