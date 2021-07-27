@@ -237,33 +237,26 @@ sqrt-дерево умеет делать массовые операции, к 
 |1 подход|$\O(1)$|$\O(\sqrt{n}\cdot\log\log n)$|
 |2 подход|$\O(\log\log n)$|$\O(\sqrt{n})$|
 
-...
+Будем обновлять отрезок лениво (как в дереве отрезков): пометим некоторые вершины как _ленивые_, т есть в них не учтены обновления и надо их протолкнуть. Но есть одно отличие: проталеивание выполняется _долго_, поэтому в запросах его выполнять не получится. На нулевом уровне проталкивание занимает $\O(\sqrt{n})$ времени, так что не будем проталкивать вершины в запросах, а будем просто учитывать обновления, если вершина или ее предок _ленивы_.
 
-We will do lazy propagation in the same way as it is done in segment trees: we mark some nodes as _lazy_, meaning that we'll push them when it's necessary. But one thing is different from segment trees: pushing a node is expensive, so it cannot be done in queries. On the layer $0$, pushing a node takes $O(\sqrt{n})$ time. So, we don't push nodes inside queries, we only look if the current node or its parent are _lazy_, and just take it into account while performing queries.
+#### Первый подход
 
-#### First approach
+В первом подходе только вершины на уровне 1 могут быть ленивыми (их длина $\O(\sqrt{n})$). При проталкивании такой вершины, она обновляет все свое поддерево включая себя за $\O(\sqrt{n}\cdot\log\log n)$. В таком случае $\text{massUpdate}$ выполняется так:
 
-In the first approach, we say that only nodes on layer $1$ (with length $O(\sqrt{n}$) can be _lazy_. When pushing such node, it updates all its subtree including itself in $O(\sqrt{n}\cdot \log \log n)$. The $\text{massUpdate}$ process is done as follows:
+- Рассмотрим верины на уровне 1 и их соответствующие блоки.
+- Некоторые из них полностью лежат в $\text{massUpdate}$. Пометим их как ленивые за $\O(\sqrt{n})$.
+- Некоторые лежат частично. Таких блоков не более двух. Перестроим их за $\O(\sqrt{n}\cdot\log\log n)$. Если они были ленивыми, учтем это.
+- Обновим $\text{prefixOp}$ и $\text{suffixOp}$ для частично покрытых блоков за $\O(\sqrt{n})$, поскольку таких блоков не более 2.
+- Перестроим $\text{index}$ за $\O(\sqrt{n}\cdot\log\log n)$.
 
-* Consider the nodes on layer $1$ and blocks corresponding to them.
+Таким образом можно делать $\text{massUpdate}$ быстро. Но как отложенные операции влияют на ответ на запрос? Они влияют так:
 
-* Some blocks are entirely covered by $\text{massUpdate}$. Mark them as _lazy_ in $O(\sqrt{n})$.
+- Если запрос полностью лежит в ленивом блоке, просто выполним запрос и применим отложенное. $\O(1)$.
+- Если запрос состоит из нескольких блоков, некоторые из которых ленивы, то учитывать надо только обрубки -- центральная часть вычисляется через $\text{index}$, в котором уже все учтено. $\O(1)$.
 
-* Some blocks are partially covered. Note there are no more than two blocks of this kind. Rebuild them in $O(\sqrt{n}\cdot \log \log n)$. If they were _lazy_, take it into account.
+Асимптотика запроса осталась $\O(1)$.
 
-* Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).
-
-* Rebuild the $\text{index}$ in $O(\sqrt{n}\cdot \log \log n)$.
-
-So we can do $\text{massUpdate}$ fast. But how lazy propagation affects queries? They will have the following modifications:
-
-* If our query entirely lies in a _lazy_ block, calculate it and take _lazy_ into account. $O(1)$.
-
-* If our query consists of many blocks, some of which are _lazy_, we need to take care of _lazy_ only on the leftmost and the rightmost block. The rest of the blocks are calculated using $\text{index}$, which already knows the answer on _lazy_ block (because it's rebuilt after each modification). $O(1)$.
-
-The query complexity still remains $O(1)$.
-
-#### Second approach
+#### Второй подход
 
 In this approach, each node can be _lazy_ (except root). Even nodes in $\text{index}$ can be _lazy_. So, while processing a query, we have to look for _lazy_ tags in all the parent nodes, i. e. query complexity will be $O(\log \log n)$.
 
