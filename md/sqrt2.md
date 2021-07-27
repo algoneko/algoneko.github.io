@@ -1,6 +1,6 @@
 # sqrt-дерево
 
-Это -- перевод [статьи про sqrt-дерево](https://cp-algorithms.com/data_structures/sqrt-tree.html) из английского e-maxx.
+Это -- перевод двух статьей с codeforces про sqrt-дерево. [1](https://codeforces.com/blog/entry/57046), [2](https://codeforces.com/blog/entry/59092).
 
 Перед прочтением рекомендуется ознакомиться с базовыми принципами [корневой декомпозиции](sqrt.html).
 
@@ -226,59 +226,9 @@ sqrt-дерево поддерживает операции обновления
 
 Таким образом, асимптотика обновления одного элемента $\O(\sqrt{n})$. Ура! `^u^`
 
-### Обновление отрезков
+Код:
 
-sqrt-дерево умеет делать массовые операции, к примеру, присваивание на отрезке. Запрос $\text{massUpdate}(x, l, r)$ значит $a_i = x\ \forall i \in [l; r]$.
-
-Есть два подхода к этой задаче:
-
-| |Запрос|Обновление|
-|--|:--:|:--:|
-|1 подход|$\O(1)$|$\O(\sqrt{n}\cdot\log\log n)$|
-|2 подход|$\O(\log\log n)$|$\O(\sqrt{n})$|
-
-Будем обновлять отрезок лениво (как в дереве отрезков): пометим некоторые вершины как _ленивые_, т есть в них не учтены обновления и надо их протолкнуть. Но есть одно отличие: проталеивание выполняется _долго_, поэтому в запросах его выполнять не получится. На нулевом уровне проталкивание занимает $\O(\sqrt{n})$ времени, так что не будем проталкивать вершины в запросах, а будем просто учитывать обновления, если вершина или ее предок _ленивы_.
-
-#### Первый подход
-
-В первом подходе только вершины на уровне 1 могут быть ленивыми (их длина $\O(\sqrt{n})$). При проталкивании такой вершины, она обновляет все свое поддерево включая себя за $\O(\sqrt{n}\cdot\log\log n)$. В таком случае $\text{massUpdate}$ выполняется так:
-
-- Рассмотрим верины на уровне 1 и их соответствующие блоки.
-- Некоторые из них полностью лежат в $\text{massUpdate}$. Пометим их как ленивые за $\O(\sqrt{n})$.
-- Некоторые лежат частично. Таких блоков не более двух. Перестроим их за $\O(\sqrt{n}\cdot\log\log n)$. Если они были ленивыми, учтем это.
-- Обновим $\text{prefixOp}$ и $\text{suffixOp}$ для частично покрытых блоков за $\O(\sqrt{n})$, поскольку таких блоков не более 2.
-- Перестроим $\text{index}$ за $\O(\sqrt{n}\cdot\log\log n)$.
-
-Таким образом можно делать $\text{massUpdate}$ быстро. Но как отложенные операции влияют на ответ на запрос? Они влияют так:
-
-- Если запрос полностью лежит в ленивом блоке, просто выполним запрос и применим отложенное. $\O(1)$.
-- Если запрос состоит из нескольких блоков, некоторые из которых ленивы, то учитывать надо только обрубки -- центральная часть вычисляется через $\text{index}$, в котором уже все учтено. $\O(1)$.
-
-Асимптотика запроса осталась $\O(1)$.
-
-#### Второй подход
-
-In this approach, each node can be _lazy_ (except root). Even nodes in $\text{index}$ can be _lazy_. So, while processing a query, we have to look for _lazy_ tags in all the parent nodes, i. e. query complexity will be $O(\log \log n)$.
-
-But $\text{massUpdate}$ becomes faster. It looks in the following way:
-
-* Some blocks are fully covered with $\text{massUpdate}$. So, _lazy_ tags are added to them. It is $O(\sqrt{n})$.
-
-* Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).
-
-* Do not forget to update the index. It is $O(\sqrt{n})$ (we use the same $\text{massUpdate}$ algorithm).
-
-* Update $\text{between}$ array for _unindexed_ subtrees. 
-
-* Go into the nodes representing partially covered blocks and call $\text{massUpdate}$ recursively.
-
-Note that when we do the recursive call, we do prefix or suffix $\text{massUpdate}$. But for prefix and suffix updates we can have no more than one partially covered child. So, we visit one node on layer $1$, two nodes on layer $2$ and two nodes on any deeper level. So, the time complexity is $O(\sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(\sqrt{n})$. The approach here is similar to the segment tree mass update.
-
-## Implementation
-
-The following implementation of Sqrt Tree can perform the following operations: build in $O(n \cdot \log \log n)$, answer queries in $O(1)$ and update an element in $O(\sqrt{n})$.
-
-~~~~~cpp
+```
 SqrtTreeItem op(const SqrtTreeItem &a, const SqrtTreeItem &b);
 
 inline int log2Up(int n) {
@@ -432,8 +382,63 @@ public:
     build(0, 0, n, 0);
   }
 };
+```
 
-~~~~~
+### Обновление отрезков
+
+sqrt-дерево умеет делать массовые операции, к примеру, присваивание на отрезке. Запрос $\text{massUpdate}(x, l, r)$ значит $a_i = x\ \forall i \in [l; r]$.
+
+Есть два подхода к этой задаче:
+
+| |Запрос|Обновление|
+|--|:--:|:--:|
+|1 подход|$\O(1)$|$\O(\sqrt{n}\cdot\log\log n)$|
+|2 подход|$\O(\log\log n)$|$\O(\sqrt{n})$|
+
+Будем обновлять отрезок лениво (как в дереве отрезков): пометим некоторые вершины как _ленивые_, т есть в них не учтены обновления и надо их протолкнуть. Но есть одно отличие: проталеивание выполняется _долго_, поэтому в запросах его выполнять не получится. На нулевом уровне проталкивание занимает $\O(\sqrt{n})$ времени, так что не будем проталкивать вершины в запросах, а будем просто учитывать обновления, если вершина или ее предок _ленивы_.
+
+#### Первый подход
+
+В первом подходе только вершины на уровне 1 могут быть ленивыми (их длина $\O(\sqrt{n})$). При проталкивании такой вершины, она обновляет все свое поддерево включая себя за $\O(\sqrt{n}\cdot\log\log n)$. В таком случае $\text{massUpdate}$ выполняется так:
+
+- Рассмотрим верины на уровне 1 и их соответствующие блоки.
+- Некоторые из них полностью лежат в $\text{massUpdate}$. Пометим их как ленивые за $\O(\sqrt{n})$.
+- Некоторые лежат частично. Таких блоков не более двух. Перестроим их за $\O(\sqrt{n}\cdot\log\log n)$. Если они были ленивыми, учтем это.
+- Обновим $\text{prefixOp}$ и $\text{suffixOp}$ для частично покрытых блоков за $\O(\sqrt{n})$, поскольку таких блоков не более 2.
+- Перестроим $\text{index}$ за $\O(\sqrt{n}\cdot\log\log n)$.
+
+Таким образом можно делать $\text{massUpdate}$ быстро. Но как отложенные операции влияют на ответ на запрос? Они влияют так:
+
+- Если запрос полностью лежит в ленивом блоке, просто выполним запрос и применим отложенное. $\O(1)$.
+- Если запрос состоит из нескольких блоков, некоторые из которых ленивы, то учитывать надо только обрубки -- центральная часть вычисляется через $\text{index}$, в котором уже все учтено. $\O(1)$.
+
+Асимптотика запроса осталась $\O(1)$.
+
+#### Второй подход
+
+In this approach, each node can be _lazy_ (except root). Even nodes in $\text{index}$ can be _lazy_. So, while processing a query, we have to look for _lazy_ tags in all the parent nodes, i. e. query complexity will be $O(\log \log n)$.
+
+But $\text{massUpdate}$ becomes faster. It looks in the following way:
+
+* Some blocks are fully covered with $\text{massUpdate}$. So, _lazy_ tags are added to them. It is $O(\sqrt{n})$.
+
+* Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).
+
+* Do not forget to update the index. It is $O(\sqrt{n})$ (we use the same $\text{massUpdate}$ algorithm).
+
+* Update $\text{between}$ array for _unindexed_ subtrees. 
+
+* Go into the nodes representing partially covered blocks and call $\text{massUpdate}$ recursively.
+
+Note that when we do the recursive call, we do prefix or suffix $\text{massUpdate}$. But for prefix and suffix updates we can have no more than one partially covered child. So, we visit one node on layer $1$, two nodes on layer $2$ and two nodes on any deeper level. So, the time complexity is $O(\sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(\sqrt{n})$. The approach here is similar to the segment tree mass update.
+
+## Implementation
+
+Implementation
+I am too lazy (like a node in an sqrt-tree :) ) to write the implementation of lazy propagation on an sqrt-tree. So, I leave it as an exercise. If someone provides an implementation for this, I'll post it here mentioning the author.
+
+Conclusion
+As we can see, sqrt-tree can perform update queries and do lazy propagation. So, it provides the same functionality as segment trees, but with faster queries. The disadvantage is slow update time, but sqrt-trees can be helpful if we have many ( ≈ 107) queries but not many updates.
 
 ## Problems
 
