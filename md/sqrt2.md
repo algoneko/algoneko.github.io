@@ -81,7 +81,7 @@ $l = 39_{10} = 100111_2$
 
 $r = 46_{10} = 101110_2$
 
-Remember that one layer contains segments of the equal size, and the block on one layer have also equal size (in our case, their size is $2^k = 2^4 = 16$. Эти блоки оплностью покрывают массив, так что первый блок покрывает элементы $(0 - 15)$ ($(000000_2 - 001111_2)$ в двоичном виде), второй -- $(16 - 31)$ ($(010000_2 - 011111_2)$ in binary) и так далее. Видно, что индексы элементов в одном блоке отличаются только в $k$ (в нашем случае 4) младших битах. В нашем случае у $l$ и $r$ биты сопадают, за исключением 4 младших, поэтому они лежат в одном блоке.
+Remember that one layer contains segments of the equal size, and the block on one layer have also equal size (in our case, their size is $2^k = 2^4 = 16$. Эти блоки оплностью покрывают массив, так что первый блок покрывает элементы $(0 - 15)$ ($(000000_2 - 001111_2)$ в двоичном виде), второй -- $(16 - 31)$ ($(010000_2 - 011111_2)$ в двоичном виде) и так далее. Видно, что индексы элементов в одном блоке отличаются только в $k$ (в нашем случае 4) младших битах. В нашем случае у $l$ и $r$ биты сопадают, за исключением 4 младших, поэтому они лежат в одном блоке.
 
 Итак, необходимо проверить, что отличаются не более $k$ младших битов, то есть $l \oplus r < 2^k$.
 
@@ -416,30 +416,26 @@ sqrt-дерево умеет делать массовые операции, к 
 
 #### Второй подход
 
-In this approach, each node can be _lazy_ (except root). Even nodes in $\text{index}$ can be _lazy_. So, while processing a query, we have to look for _lazy_ tags in all the parent nodes, i. e. query complexity will be $O(\log \log n)$.
+Во втором подходе каждая вершина кроме корня может быть ленивой. Ленивыми могут быть и вершины в $\text{index}$. Таким образом, при обработке запроса необходимо проверить ленивость всех предков, то есть сложность запроса станет $\O(\log\log n)$.
 
-But $\text{massUpdate}$ becomes faster. It looks in the following way:
+Но $\text{massUpdate}$ становится быстрее и выглядит так:
 
-* Some blocks are fully covered with $\text{massUpdate}$. So, _lazy_ tags are added to them. It is $O(\sqrt{n})$.
+- Некоторые блоки полностью покрыты $\text{massUpdate}$. Пометим их как ленивые за $\O(\sqrt{n})$.
+- Обновим $\text{prefixOp}$ и $\text{suffixOp} для частично покрытых блоков за $\O(\sqrt{n})$, поскольку таких блоков не более 2.
+- Обновим $\text{index}$ за $\O(\sqrt{n})$ (используется такой же алгоритм обновления).
+- Обновим массив $\text{between}$ для _неиндексированных_ поддеревьев.
+- Перейдем в вершины, соответствующие частично покрытым блокам и выбовем рекурсивно $\text{massUpdate}$.
 
-* Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).
+В рекурсивном вызове делается $\text{massUpdate}$ на префиксе или на суффиксе, то есть непокрытый блок только один. Мы посещаем одну вершину на 1 уровне и по 2 вершины на последующих. Асимптотика $\O(\sqrt{n} + \sqrt{\sqrt{n}} + \cdots) = \O(\sqrt{n})$. Этот подход похож на такой же в массовых операциях на деревьях отрезков.
 
-* Do not forget to update the index. It is $O(\sqrt{n})$ (we use the same $\text{massUpdate}$ algorithm).
+## Реализация
 
-* Update $\text{between}$ array for _unindexed_ subtrees. 
+`gepardo` (автор поста на кф) и `ゆき` (автор перевода) слишком ленивы (как вершины в sqrt-дереве), чтобы писать отложенные операции на sqrt-дереве. Возможно, у меня дойдут до этого руки, но если у вас есть реализация -- направьте ее не только через pull request, но и автору оригинала на codeforces.
 
-* Go into the nodes representing partially covered blocks and call $\text{massUpdate}$ recursively.
+# Заключение
 
-Note that when we do the recursive call, we do prefix or suffix $\text{massUpdate}$. But for prefix and suffix updates we can have no more than one partially covered child. So, we visit one node on layer $1$, two nodes on layer $2$ and two nodes on any deeper level. So, the time complexity is $O(\sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(\sqrt{n})$. The approach here is similar to the segment tree mass update.
+Видно, что sqrt-дерево по функциональности не уступает дереву отрезков, но у него более быстрые ответы на запросы. Слабая сторона sqrt-дерева -- медленные обновления. sqrt-дерево может быть полезно, если много запросов (около `1e7`), но запросов обновления немного.
 
-## Implementation
-
-Implementation
-I am too lazy (like a node in an sqrt-tree :) ) to write the implementation of lazy propagation on an sqrt-tree. So, I leave it as an exercise. If someone provides an implementation for this, I'll post it here mentioning the author.
-
-Conclusion
-As we can see, sqrt-tree can perform update queries and do lazy propagation. So, it provides the same functionality as segment trees, but with faster queries. The disadvantage is slow update time, but sqrt-trees can be helpful if we have many ( ≈ 107) queries but not many updates.
-
-## Problems
+## Задачи, решаемые с помошью sqrt-дерева
 
 [CodeChef - SEGPROD](https://www.codechef.com/NOV17/problems/SEGPROD) 
