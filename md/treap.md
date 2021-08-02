@@ -441,11 +441,127 @@ Node* merge (Node *l, Node *r) {
 
 ```cpp
 //=== ДД по явному ключу --- бинарное дерево поиска ====//
-TODO
+template<typename T, T neutral = T()> struct bst {
+private:
+	struct Node {
+		T key; int size;
+		Node *l, *r;
+		Node(const T &key) : key(key), size(1), l(0), r(0) {}
+	};
+	Node *root;
+
+public:
+	bst() : root(0) {}
+	~bst() { if (root) clear(root); }
+
+	// Очистка дерева
+	inline void clear() {
+		if (root) clear(root);
+	}
+
+	// Добавить элемент. Если такой уже есть, все равно добавить
+	inline void ins(const T &e) {
+		Node *L, *R; tie(L, R) = split(root, e);
+		root = merge(L, merge(new Node(e), R));
+	}
+
+	// Удалить один элемент с ключом "e"
+	inline void del(const T &e) {
+		int o1 = ook(e);
+		Node *L, *M, *R; tie(M, R) = cut(root, o1 + 1); tie(L, M) = cut(M, o1);
+		clear(M);
+		root = merge(L, R);
+	}
+
+	// Проверить существование элемента
+	inline bool cont(const T &e) {
+		return e == fbo(ook(e));
+	}
+
+	// Порядковый номер самого первого из ключей "e"
+	inline int ook(const T &e) {
+		Node *L, *R; tie(L, R) = split(root, e);
+		int ans = size(L);
+		root = merge(L, R);
+		return ans;
+	}
+
+	// Какой ключ имеет порядковый номер "i"
+	inline const T fbo(int i) {
+		Node *L, *M, *R; tie(M, R) = cut(root, i + 1); tie(L, M) = cut(M, i);
+		const T val = M ? M->key : neutral;
+		root = merge(L, merge(M, R));
+		return val;
+	}
+
+	// Какой ключ следует за последним ключом "e" (если такого нет, то neutral)
+	inline const T next(const T &e) {
+		Node *L, *M, *R; tie(L, M) = split2(root, e); tie(M, R) = cut(M, 1);
+		const T val = M ? M->key : neutral;
+		root = merge(L, merge(M, R));
+		return val;
+	}
+
+	// Какой ключ следует перед первым ключом "e" (если такого нет, то neutral)
+	inline const T prev(const T &e) {
+		Node *L, *M, *R; tie(M, R) = split(root, e); tie(L, M) = cut(M, size(M) - 1);
+		const T val = M ? M->key : neutral;
+		root = merge(L, merge(M, R));
+		return val;
+	}
+
+private:
+	void clear(Node* &r) {
+		if (r->l) clear(r->l);
+		if (r->r) clear(r->r);
+		delete r; r = 0;
+	}
+	
+	inline const int size(Node *r) const { return (r ? r->size : 0); }
+	inline void upd(Node *r) { if (r) r->size = 1 + size(r->l) + size(r->r); }
+
+	Node *merge(Node *l, Node *r) {
+		if (!l) return r;
+		if (!r) return l;
+		if (gen64() % (size(l) + size(r)) < size(l)) {
+			l->r = merge(l->r, r); upd(l); return l;
+		} else {
+			r->l = merge(l, r->l); upd(r); return r;
+		}
+	}
+	
+	pair<Node*, Node*> split(Node *r, const T &x) {
+		if (!r) return{ 0, 0 };
+		if (r->key < x) {
+			auto q = split(r->r, x); r->r = q.first; upd(r); return{ r, q.second };
+		} else {
+			auto q = split(r->l, x); r->l = q.second; upd(r); return{ q.first, r };
+		}
+	}
+	
+	pair<Node*, Node*> split2(Node *r, const T &x) {
+		if (!r) return{ 0, 0 };
+		if (r->key <= x) {
+			auto q = split2(r->r, x); r->r = q.first; upd(r); return{ r, q.second };
+		} else {
+			auto q = split2(r->l, x); r->l = q.second; upd(r); return{ q.first, r };
+		}
+	}
+	
+	pair<Node*, Node*> cut(Node *r, int k) {
+		if (!r) return{ 0, 0 };
+		if (size(r->l) + 1 <= k) {
+			auto q = cut(r->r, k - size(r->l) - 1); r->r = q.first; upd(r); return{ r, q.second };
+		} else {
+			auto q = cut(r->l, k); r->l = q.second; upd(r); return{ q.first, r };
+		}
+	}
+};
+
 ```
 
 ```cpp
-//==== ДД по неявному ключу --- вид массива, переворот отрезка ====//
+//==== ДД по неявному ключу --- вид массива, переворот отрезка, какие-то операции ====//
 TODO
 ```
 
