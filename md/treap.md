@@ -550,7 +550,7 @@ private:
 	
 	pair<Node*, Node*> cut(Node *r, int k) {
 		if (!r) return{ 0, 0 };
-		if (size(r->l) + 1 <= k) {ф
+		if (size(r->l) + 1 <= k) {
 			auto q = cut(r->r, k - size(r->l) - 1); r->r = q.first; upd(r); return{ r, q.second };
 		} else {
 			auto q = cut(r->l, k); r->l = q.second; upd(r); return{ q.first, r };
