@@ -1,5 +1,5 @@
 function is_dark_mode() {
-  return document.cookie.indexof("d=1") !== -1;
+  return document.cookie.indexOf("d=1") !== -1;
 }
 function clear_dark_mode() {
   document.cookie.replace("d=1","");
