@@ -2,7 +2,7 @@ function is_dark_mode() {
   return document.cookie.indexOf("d=1") !== -1;
 }
 function clear_dark_mode() {
-  document.cookie.replace("d=1","");
+   document.cookie = document.cookie.replace("d=1","");
 }
 function set_dark_mode() {
   document.cookie = "d=1";
