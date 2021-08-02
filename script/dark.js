@@ -18,14 +18,17 @@ function apply_dark_mode() {
   }
 }
 
-apply_dark_mode();
-
-var button = document.createElement("Button");
-button.innerHTML = "Toggle dark mode";
-button.style = "top: 1em; right: 1em; position: absolute; z-index: 9999";
-button.addEventListener("click", function() {
-  if(is_dark_mode()) clear_dark_mode();
-  else set_dark_mode();
+document.addEventListener("DOMContentLoaded", function(event) {
   apply_dark_mode();
+
+  var button = document.createElement("Button");
+  button.innerHTML = "Toggle dark mode";
+  button.style = "top: 1em; right: 1em; position: absolute; z-index: 9999";
+  button.addEventListener("click", function() {
+    if(is_dark_mode()) clear_dark_mode();
+    else set_dark_mode();
+    apply_dark_mode();
+  });
+  
+  document.body.appendChild(button);
 });
-document.body.appendChild(button);
