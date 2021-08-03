@@ -19,8 +19,6 @@ function apply_dark_mode() {
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
-  apply_dark_mode();
-
   var button = document.createElement("Button");
   button.innerHTML = "Toggle dark mode";
   button.style = "top: 1em; right: 1em; position: absolute; z-index: 9999";
